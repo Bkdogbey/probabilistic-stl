@@ -1,17 +1,5 @@
 import numpy as np
 from scipy.stats import norm
-import matplotlib.pyplot as plt
-
-# --------- System Dynamics ------------#
-a = 0.1  # state
-b = 1.0  # input
-g = 0.5  # Stochastic noise
-q = 0.1  # process noise covariance
-
-mu = 53  # mean height
-P = 5  # initial height variance
-
-t = np.linspace(0, 10, 50)  # time from 0 to 30 seconds as given by stl
 
 
 def u_func(t):
@@ -38,9 +26,6 @@ def propagate(a, b, g, q, mu, P, u, t):
         # Variance update
         var_trace[i] = (Phi**2) * var_trace[i - 1] + (g**2) * dt + q * dt
     return mean_trace, var_trace
-
-
-mean_trace, var_trace = propagate(a, b, g, q, mu, P, u_func, t)
 
 
 # Bounds Calculation
@@ -75,34 +60,3 @@ def compute_bounds(
     )  # Choosing the minimum probability over the interval due the G operator
     # Here we don't compute a separate loose upper bound; set both to min_prob.
     return min_prob, min_prob  # return the bounds
-
-
-# Plots
-# Plot the mean and sigma interval
-plt.figure(figsize=(12, 6))
-plt.plot(t, mean_trace, label="Mean Height", color="blue")
-plt.fill_between(
-    t,
-    mean_trace - np.sqrt(var_trace),
-    mean_trace + np.sqrt(var_trace),
-    color="blue",
-    alpha=0.2,
-    label="1-sigma Interval",
-)
-plt.axhline(50, color="red", linestyle="--", label="Threshold Height = 50m")
-plt.title("Height Trajectory with 1-sigma Confidence Interval")
-plt.xlabel("Time [s]")
-plt.ylabel("Height [m]")
-plt.legend()
-plt.grid()
-plt.show()
-lb, ub = compute_bounds(
-    mean_trace,
-    var_trace,
-    t,
-    min_height=50,
-    start_time=0,
-    end_time=10,
-    complete_trace=True,
-)
-print(f"Stori Bounds for G[0,10] (z >= 50): [{lb:.3f}, {ub:.3f}]")  # Computed bounds
